@@ -32,6 +32,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '0.0.0.0',
+    'wallstreetbots.org'
 ]
 
 # For when running locally
@@ -47,10 +48,19 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
     'backend.tradingbot.apps.TradingbotConfig',
     'backend.home.apps.HomeConfig',
+    'backend.auth0login.apps.Auth0LoginConfig',
+
+    # Authentication
+    'social_django',
+
+    # Customization
+    'admin_interface',
+    'colorfield',
 ]
 
 MIDDLEWARE = [
@@ -65,6 +75,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'backend.urls'
+
+# TEMPLATE_DIR = os.path.join(BASE_DIR, "frontend/templates")  # ROOT dir for templates
 
 TEMPLATES = [
     {
@@ -120,7 +132,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'EST'
 
 USE_I18N = True
 
@@ -132,3 +144,29 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = '/static/'
+# Extra places for collectstatic to find static files.
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'auth0login/static'),
+)
+
+# Auth0 authentication
+SOCIAL_AUTH_TRAILING_SLASH = False  # Remove trailing slash from routes
+SOCIAL_AUTH_AUTH0_DOMAIN = os.environ.get('AUTH0_DOMAIN')
+SOCIAL_AUTH_AUTH0_KEY = os.environ.get('AUTH0_CLIENT_ID')
+SOCIAL_AUTH_AUTH0_SECRET = os.environ.get('AUTH0_CLIENT_SECRET')
+SOCIAL_AUTH_AUTH0_SCOPE = [
+    'openid',
+    'profile',
+    'email'
+]
+AUTHENTICATION_BACKENDS = {
+    'backend.auth0login.auth0backend.Auth0',
+    'django.contrib.auth.backends.ModelBackend'
+}
+LOGIN_URL = '/login/auth0'
+LOGIN_REDIRECT_URL = '/dashboard'
+BACKEND_ALPACA_ID = os.environ.get('ALPACA_ID')
+BACKEND_ALPACA_KEY = os.environ.get('ALPACA_SECRET_KEY')

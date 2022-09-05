@@ -1,0 +1,227 @@
+{% extends 'layouts/base.html' %}
+{% load poll_extras %}
+
+{% block title %} Tables {% endblock title %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+<!-- include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+<script>
+
+    var config = {
+      type: 'doughnut',
+      data: {
+        datasets: [{
+          data: [
+            {{ userdata.long_portfolio_value}}, {{userdata.short_portfolio_value}}, {{userdata.tradable_cash}}
+          ],
+
+          backgroundColor: [
+            'rgb(255, 99, 132)',
+            'rgb(54, 162, 235)',
+            'rgb(255, 205, 86)'
+          ],
+
+          label: 'Total Asset'
+        }],
+
+        labels: ['Long Portfolio Value', 'Short Portfolio Value', 'Tradable Cash'],
+      },
+      options: {
+        responsive: true
+      }
+    };
+
+    window.onload = function() {
+      var ctx = document.getElementById('asset-chart').getContext('2d');
+      window.myPie = new Chart(ctx, config);
+    };
+
+</script>
+
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-4 ml-3">
+            <div id="container" style="width: 35%;">
+                <canvas id="asset-chart"></canvas>
+            </div>
+        </div>
+
+         <div class="col-4">
+             <div class="card">
+                 <div class="card-body p-3">
+                    <form action="" method="post">
+                        {% csrf_token %}
+                        <h6>Add to Watchlist</h6>
+                        <div class="mb-3">
+                            {{ watchlist_form.ticker }}
+                        </div>
+                        <button type="submit" name="add_to_watchlist" class="btn bg-gradient-info w-30 mt-2 mb-2">
+                            Add
+                        </button>
+                    </form>
+                     <p>{{ watchlist_form_response }}</p>
+                 </div>
+             </div>
+         </div>
+         <div class="col-4">
+             <div class="card">
+                 <div class="card-body p-3">
+                     <form action="" method="post">
+                         {% csrf_token %}
+                         <h6>Rebalancing Strategy</h6>
+                         <div class="">
+                             {{ strategy_form.strategy }}
+                         </div>
+                         <button type="submit" name="submit_strategy"
+                                 class="btn bg-gradient-info w-30 mt-4 mb-2">Update Strategy
+                         </button>
+                     </form>
+
+                 </div>
+             </div>
+         </div>
+    </div>
+</div>
+
+
+
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header pb-0">
+                    <h6>Positions</h6>
+                    <p class="text-sm mb-0">
+                        <span class="font-weight-bold ms-1">Long Portfolio Value:</span> $
+                        {{userdata.long_portfolio_value}}
+                        <span class="font-weight-bold ms-1">Short Portfolio Value:</span> $
+                        {{userdata.short_portfolio_value}} <br>
+                        <span class="font-weight-bold ms-1">Cash:</span> $ {{userdata.cash}} ($
+                        {{userdata.tradable_cash}} tradable)
+                    </p>
+                </div>
+
+                <div class="card-body px-0 pt-0 pb-2">
+                    <div class="table-responsive p-0">
+                        <table class="table align-items-center mb-0">
+                            <thead>
+                            <tr>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    Ticker
+                                </th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    Shares
+                                </th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    Price
+                                </th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    Avg Entry
+                                </th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    Cost Basis
+                                </th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    Market Value
+                                </th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    Today's P/L (%)
+                                </th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    Today's P/L ($)
+                                </th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    Total P/L (%)
+                                </th>
+                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    Total P/L ($)
+                                </th>
+                                <th class="text-secondary opacity-7"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for position in userdata.portfolio %}
+                            <tr class="align-middle text-center">
+                                <td>
+                                    <h6 class="mb-0 text-sm">{{ position.symbol }}</h6>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <h6 class="mb-0 text-sm">{{ position.qty }}</h6>
+                                </td>
+                                <td class="align-middle text-center text-sm">
+                                    <h6 class="text-xs font-weight-bold"> $ {{ position.current_price  | round_2}} </h6>
+                                </td>
+                                <td class="align-middle text-center text-sm">
+                                    <h6 class="text-xs font-weight-bold"> $ {{ position.avg_entry_price | round_2 }} </h6>
+                                </td>
+
+                                <td class="align-middle text-center">
+                                    <h6 class="text-xs font-weight-bold">$ {{ position.cost_basis | round_2}} </h6>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <h6 class="text-xs font-weight-bold"> $ {{ position.market_value  | round_2}}</h6>
+                                </td>
+                                <td class="align-middle text-center">
+                                    {% with bool=position.change_today|check_positive %}
+                                    {% if bool %}
+                                     <h6 class="text-success mb-0 text-sm" >{{ position.change_today | find_percent}}%</h6>
+                                    {% else %}
+                                     <h6 class="text-danger text-sm font-weight-bolder"> {{ position.change_today | find_percent }}%</h6>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td class="align-middle text-center">
+                                    {% with bool=position.unrealized_intraday_pl|check_positive %}
+                                    {% if bool %}
+                                    <h6 class="text-success text-sm font-weight-bolder"> ${{ position.unrealized_intraday_pl | round_2 }}</h6>
+                                    {% else %}
+                                    <h6 class="text-danger text-sm font-weight-bolder"> ${{ position.unrealized_intraday_pl | round_2 }}</h6>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+
+                                <td class="align-middle text-center">
+                                    {% with bool=position.unrealized_pl|check_positive %}
+                                    {% if bool %}
+                                    <h6 class="text-success text-sm font-weight-bolder"> {{ position.unrealized_plpc | find_percent}} %</h6>
+                                    {% else %}
+                                    <h6 class="text-danger text-sm font-weight-bolder"> {{ position.unrealized_plpc | find_percent}} %</h6>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+
+                                <td class="align-middle text-center">
+                                    {% with bool=position.unrealized_pl|check_positive %}
+                                    {% if bool %}
+                                    <h6 class="text-success text-sm font-weight-bolder"> $ {{ position.unrealized_pl | round_2}}</h6>
+                                    {% else %}
+                                    <h6 class="text-danger text-sm font-weight-bolder"> $ {{ position.unrealized_pl | round_2 }}</h6>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {% include "includes/footer.html" %}
+
+</div>
+
+{% endblock content %}
+
+<!-- Specific JS goes HERE -->
+{% block javascripts %}{% endblock javascripts %}
